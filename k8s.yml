@@ -1,0 +1,74 @@
+#
+# Kubernetes Deployment
+#
+
+# Legacy Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: legacy-config
+  labels:
+    app: legacy
+    tier: backend
+    type: config
+data:
+  config.toml: |
+    [log]
+    level = "debug"
+    format = "logstash"
+    [redis]
+    host = "redis:6379"
+    topics = [
+        "fm:events",
+        "player:ready",
+        "player:stop",
+        "player:stopped",
+        "player:play",
+        "player:playing",
+        "player:resume",
+        "player:resumed",
+        "player:pause",
+        "player:paused",
+        "volume:update",
+        "volume:updated",
+        "volume:mute",
+        "volume:muted",
+        "volume:unmute",
+        "volume:unmuted",
+    ]
+    [legacy.redis]
+    host = "redis:6379"
+# EOF
+---
+# Legacy Deployment
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: legacy
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: legacy
+        tier: backend
+        type: deployment
+    spec:
+      # Volumes
+      volumes:
+      - name: legacy-config-volume
+        configMap:
+          name: legacy-config
+      # Containers
+      containers:
+      # Go Application
+      - name: legacy
+        image: gcr.io/soon-fm-production/legacy:$TAG
+        resources:
+          requests:
+            memory: "10Mi"
+        volumeMounts:
+        - name: legacy-config-volume
+          mountPath: /etc/sfm/legacy
+# EOF
+---
