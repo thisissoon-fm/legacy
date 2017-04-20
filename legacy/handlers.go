@@ -49,18 +49,31 @@ func (h *LegacyEventHandler) resume() error {
 }
 
 // Handles a legacy stop event publishing a player:stop event
-func (h *LegacyEventHandler) stop() error {
-	event := &Event{
+func (h *LegacyEventHandler) stop(payload []byte) error {
+	event := &LegacyStopEventBody{}
+	if err := json.Unmarshal(payload, event); err != nil {
+		return err
+	}
+	sp, err := json.Marshal(&StopPayload{
+		ProviderName:    "spotify",
+		ProviderTrackID: event.URI,
+		UserID:          event.User,
+		ByUserID:        event.By,
+	})
+	if err != nil {
+		return err
+	}
+	stopEvent, err := json.Marshal(&Event{
 		Topic:   StopEvent,
 		Created: time.Now().UTC(),
-	}
-	payload, err := json.Marshal(event)
+		Payload: json.RawMessage(sp),
+	})
 	if err != nil {
 		return err
 	}
 	outC <- pubsub.Message{
 		Topic:   StopEvent,
-		Payload: payload,
+		Payload: stopEvent,
 	}
 	return nil
 }
@@ -127,7 +140,7 @@ func (h *LegacyEventHandler) HandleEvent(msg pubsub.Message) error {
 	case LegacyResumeEvent:
 		return h.resume()
 	case LegacyStopEvent:
-		return h.stop()
+		return h.stop(msg.Payload)
 	case LegacyVolumeSetEvent:
 		return h.setVolume(msg.Payload)
 	case LegacyMuteSetEvent:

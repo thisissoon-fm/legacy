@@ -29,6 +29,14 @@ type LegacyPlayEventBody struct {
 	User  string `json:"user"`
 }
 
+type LegacyStopEventBody struct {
+	Event string `json:"event"`
+	Track string `json:"track"`
+	URI   string `json:"uri"`
+	User  string `json:"user"`
+	By    string `json:"by"`
+}
+
 type LegacyVolumeEventBody struct {
 	Event  string `json:"event"`
 	Volume int    `json:"volume"`
@@ -73,6 +81,13 @@ type PlayPayload struct {
 	ProviderTrackID string `json:"providerTrackID"` // The provider track id from the provider
 	PlaylistID      string `json:"playlistID"`      // The Playlist ID from the playlist service
 	UserID          string `json:"userID"`          // The User ID whom queued the playlist
+}
+
+type StopPayload struct {
+	ProviderName    string `json:"providerID"`      // The provider name (googlemusic, soundcloud)
+	ProviderTrackID string `json:"providerTrackID"` // The provider track id from the provider
+	UserID          string `json:"userID"`          // The User ID whom queued the playlist
+	ByUserID        string `json:"byUserID"`        // The User ID whom clicked the skip button
 }
 
 type VolumePayload struct {
